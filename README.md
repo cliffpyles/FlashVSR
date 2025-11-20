@@ -42,7 +42,7 @@ Thanks to the community for the fast adoption of FlashVSR! Below are some third-
 
 **Cloud / API Deployments**  
 (Ready-to-use online inference; however, if you have a capable GPU, we recommend running the official repository directly to achieve the most complete and accurate results.  
-The following services are maintained by third parties.)
+The following services are maintained by third parties — and honestly, I’m not sure whether they use v1 or v1.1, or whether the full pipeline is executed correctly. 🤷‍♂️)
 
 - fal.ai: https://fal.ai/models/fal-ai/flashvsr/upscale/video  
 - WaveSpeed AI: https://wavespeed.ai/models/wavespeed-ai/flashvsr  
