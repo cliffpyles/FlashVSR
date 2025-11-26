@@ -28,6 +28,7 @@ try:
     from flashvsr.models.flashvsr_utils import Causal_LQ4x_Proj, Buffer_LQ4x_Proj
     from flashvsr.models.flashvsr_tcdecoder import build_tcdecoder
     from flashvsr.registry import register_wan_models
+    from flashvsr.model_downloader import download_model, download_models_for_pipeline
 
     # Register Wan models with diffsynth
     register_wan_models()
@@ -226,7 +227,7 @@ def prepare_input_tensor(path: str, scale: float = 4, dtype=torch.bfloat16, devi
 
 # ==================== Pipeline Initialization ====================
 
-def init_pipeline(pipeline_type: str, model_version: str, model_dir: str = None, dtype=torch.bfloat16, device='cuda'):
+def init_pipeline(pipeline_type: str, model_version: str, model_dir: str = None, dtype=torch.bfloat16, device='cuda', auto_download: bool = True):
     """Initialize the appropriate FlashVSR pipeline."""
     
     # Get script directory
@@ -234,18 +235,26 @@ def init_pipeline(pipeline_type: str, model_version: str, model_dir: str = None,
     
     # Determine model directory
     if model_dir is None:
-        # Try relative to script directory first
-        if model_version == "v1.1":
-            model_dir = os.path.join(script_dir, "examples", "WanVSR", "FlashVSR-v1.1")
-        else:  # v1
-            model_dir = os.path.join(script_dir, "examples", "WanVSR", "FlashVSR")
+        # Get project root (go up from cli/ to project root)
+        project_root = os.path.dirname(script_dir)
         
-        # If not found, try relative to current working directory
+        # Try models/ directory in project root first
+        if model_version == "v1.1":
+            model_dir = os.path.join(project_root, "models", "FlashVSR-v1.1")
+        else:  # v1
+            model_dir = os.path.join(project_root, "models", "FlashVSR")
+        
+        # If not found, try relative to current working directory (backward compatibility)
         if not os.path.exists(model_dir):
-            if model_version == "v1.1":
-                model_dir = os.path.join(os.getcwd(), "examples", "WanVSR", "FlashVSR-v1.1")
-            else:  # v1
-                model_dir = os.path.join(os.getcwd(), "examples", "WanVSR", "FlashVSR")
+            # Try old location for backward compatibility
+            old_dir = os.path.join(os.getcwd(), "examples", "WanVSR", "FlashVSR-v1.1" if model_version == "v1.1" else "FlashVSR")
+            if os.path.exists(old_dir):
+                model_dir = old_dir
+            else:
+                # Also try relative to project root old location
+                old_dir = os.path.join(project_root, "examples", "WanVSR", "FlashVSR-v1.1" if model_version == "v1.1" else "FlashVSR")
+                if os.path.exists(old_dir):
+                    model_dir = old_dir
     else:
         model_dir = os.path.expanduser(model_dir)
         if not os.path.isabs(model_dir):
@@ -256,8 +265,36 @@ def init_pipeline(pipeline_type: str, model_version: str, model_dir: str = None,
             else:
                 model_dir = os.path.abspath(model_dir)
     
+    # Check if model directory exists, auto-download if missing
     if not os.path.exists(model_dir):
-        raise FileNotFoundError(f"Model directory not found: {model_dir}")
+        if auto_download:
+            print(f"Model directory not found: {model_dir}")
+            print(f"Auto-downloading FlashVSR {model_version} model...")
+            try:
+                # Calculate base_dir: go up from cli/ to project root, then to models/
+                # script_dir is cli/, so we need to go up one level
+                project_root = os.path.dirname(script_dir)  # Go up from cli/ to project root
+                base_dir = os.path.join(project_root, "models")
+                
+                downloaded_dir = download_models_for_pipeline(
+                    version=model_version,
+                    pipeline_type=pipeline_type,
+                    base_dir=base_dir,
+                    auto_download=True,
+                    quiet=False
+                )
+                if downloaded_dir:
+                    model_dir = str(downloaded_dir)
+            except Exception as e:
+                raise FileNotFoundError(
+                    f"Failed to auto-download model: {str(e)}\n"
+                    f"Please run 'flashvsr setup --version {model_version}' to download models manually."
+                ) from e
+        else:
+            raise FileNotFoundError(
+                f"Model directory not found: {model_dir}\n"
+                f"Run 'flashvsr setup --version {model_version}' to download models."
+            )
     
     print(f"Using model directory: {model_dir}")
     print(f"GPU: {torch.cuda.current_device()} - {torch.cuda.get_device_name(torch.cuda.current_device())}")
@@ -352,36 +389,124 @@ def init_pipeline(pipeline_type: str, model_version: str, model_dir: str = None,
     return pipe
 
 
+# ==================== Setup Command ====================
+
+def setup_command(args):
+    """Handle the setup command for downloading models."""
+    try:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        # Go up from cli/ to project root
+        project_root = os.path.dirname(script_dir)
+        base_dir = os.path.join(project_root, "models")
+        
+        print(f"\n{'='*60}")
+        print(f"FlashVSR Setup - Downloading Model Weights")
+        print(f"{'='*60}\n")
+        
+        model_dir = download_model(
+            version=args.version,
+            pipeline_type=args.pipeline,
+            base_dir=base_dir,
+            resume_download=True,
+            quiet=args.quiet
+        )
+        
+        print(f"\n{'='*60}")
+        print(f"✓ Setup complete! Models available at: {model_dir}")
+        print(f"{'='*60}\n")
+        
+        return 0
+    except Exception as e:
+        print(f"\n{'='*60}")
+        print(f"✗ Setup failed: {str(e)}")
+        print(f"{'='*60}\n")
+        import traceback
+        traceback.print_exc()
+        return 1
+
+
 # ==================== Main CLI ====================
 
 def parse_args():
     """Parse command-line arguments."""
+    # Check if first arg is "setup" command
+    if len(sys.argv) > 1 and sys.argv[1] == "setup":
+        return parse_setup_args()
+    else:
+        return parse_inference_args()
+
+
+def parse_setup_args():
+    """Parse arguments for setup command."""
+    parser = argparse.ArgumentParser(
+        prog="flashvsr setup",
+        description="Download FlashVSR model weights from Hugging Face",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Download v1.1 model (recommended)
+  flashvsr setup
+
+  # Download v1 model
+  flashvsr setup --version v1
+
+  # Download models for specific pipeline
+  flashvsr setup --pipeline full
+  flashvsr setup --pipeline tiny
+        """
+    )
+    parser.add_argument(
+        "--version",
+        type=str,
+        choices=["v1", "v1.1"],
+        default="v1.1",
+        help="Model version to download (default: v1.1)"
+    )
+    parser.add_argument(
+        "--pipeline",
+        type=str,
+        choices=["base", "full", "tiny", "tiny-long"],
+        default="base",
+        help="Pipeline type to determine which files to verify (default: base)"
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress progress output"
+    )
+    args = parser.parse_args()
+    args.command = "setup"
+    return args
+
+
+def parse_inference_args():
+    """Parse arguments for inference command."""
     parser = argparse.ArgumentParser(
         description="FlashVSR CLI - Video Super-Resolution Inference Tool",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   # Basic usage with default settings
-  python flashvsr_cli.py input.mp4
+  flashvsr input.mp4
 
   # Use Tiny pipeline with v1.1 model
-  python flashvsr_cli.py input.mp4 --pipeline tiny --version v1.1
+  flashvsr input.mp4 --pipeline tiny --version v1.1
 
   # Custom output path and scale
-  python flashvsr_cli.py input.mp4 -o output.mp4 --scale 4.0
+  flashvsr input.mp4 -o output.mp4 --scale 4.0
 
   # Process image directory
-  python flashvsr_cli.py ./images/ -o output.mp4
+  flashvsr ./images/ -o output.mp4
 
   # Customize inference parameters
-  python flashvsr_cli.py input.mp4 --sparse-ratio 1.5 --local-range 9 --tiled
+  flashvsr input.mp4 --sparse-ratio 1.5 --local-range 9 --tiled
 
   # Use CPU (slower, for testing)
-  python flashvsr_cli.py input.mp4 --device cpu
+  flashvsr input.mp4 --device cpu
         """
     )
     
-    # Required arguments
+    # Required arguments for inference
     parser.add_argument(
         "input",
         type=str,
@@ -521,10 +646,16 @@ def main():
     """Main CLI entry point."""
     args = parse_args()
     
-    # Validate input
-    if not os.path.exists(args.input):
-        print(f"Error: Input path does not exist: {args.input}")
-        sys.exit(1)
+    # Handle setup command
+    if args.command == "setup":
+        sys.exit(setup_command(args))
+    
+    # Handle inference command (default)
+    if args.command == "infer":
+        # Validate input
+        if not os.path.exists(args.input):
+            print(f"Error: Input path does not exist: {args.input}")
+            sys.exit(1)
     
     # Determine output path
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -578,14 +709,15 @@ def main():
     print(f"{'='*60}\n")
     
     try:
-        # Initialize pipeline
+        # Initialize pipeline (with auto-download enabled)
         print("Initializing pipeline...")
         pipe = init_pipeline(
             pipeline_type=args.pipeline,
             model_version=args.version,
             model_dir=args.model_dir,
             dtype=dtype,
-            device=args.device
+            device=args.device,
+            auto_download=True
         )
         print("Pipeline initialized successfully.\n")
         

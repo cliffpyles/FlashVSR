@@ -24,18 +24,20 @@ Diffusion models have recently advanced video restoration, but applying them to 
 
 ### 📰 News
 
-- **Nov 2025 — 🎉 [FlashVSR v1.1](https://huggingface.co/JunhaoZhuang/FlashVSR-v1.1) released:** enhanced stability + fidelity  
-- **Oct 2025 — [FlashVSR v1](https://huggingface.co/JunhaoZhuang/FlashVSR)  (initial release)**: Inference code and model weights are available now! 🎉  
-- **Bug Fix (October 21, 2025):** Fixed `local_attention_mask` update logic to prevent artifacts when switching between different aspect ratios during continuous inference.  
+- **Nov 2025 — 🎉 [FlashVSR v1.1](https://huggingface.co/JunhaoZhuang/FlashVSR-v1.1) released:** enhanced stability + fidelity
+- **Oct 2025 — [FlashVSR v1](https://huggingface.co/JunhaoZhuang/FlashVSR) (initial release)**: Inference code and model weights are available now! 🎉
+- **Bug Fix (October 21, 2025):** Fixed `local_attention_mask` update logic to prevent artifacts when switching between different aspect ratios during continuous inference.
 - **Coming Soon:** Dataset release (**VSR-120K**) for large-scale training.
 
 ---
+
 ### 🌐 Community Integrations
 
 Thanks to the community for the fast adoption of FlashVSR! Below are some third-party integrations:
 
 **ComfyUI Support**
-- **[smthemex/ComfyUI_FlashVSR](https://github.com/smthemex/ComfyUI_FlashVSR)** — closer to the official implementation  
+
+- **[smthemex/ComfyUI_FlashVSR](https://github.com/smthemex/ComfyUI_FlashVSR)** — closer to the official implementation
 - **[lihaoyun6/ComfyUI-FlashVSR_Ultra_Fast](https://github.com/lihaoyun6/ComfyUI-FlashVSR_Ultra_Fast)** — modified attention behavior, easier installation, and added `tile_dit`; I have not personally tested this version
 - **WanVideoWrapper** — integrated support but currently has known issues  
   https://github.com/kijai/ComfyUI-WanVideoWrapper/issues/1441
@@ -43,13 +45,14 @@ Thanks to the community for the fast adoption of FlashVSR! Below are some third-
 **Cloud / API Deployments**  
 (These third-party services offer ready-to-use online inference, making it easy to try FlashVSR without any setup or GPU requirements. However, it’s unclear whether they run v1 or v1.1 or whether the full pipeline is implemented, so results may differ from the official version. 🤷‍♂️ For the most accurate and complete reproduction, we recommend using the official repository when possible.)
 
-- fal.ai: https://fal.ai/models/fal-ai/flashvsr/upscale/video  
-- WaveSpeed AI: https://wavespeed.ai/models/wavespeed-ai/flashvsr  
-- Segmind: https://www.segmind.com/models/flashvsr  
+- fal.ai: https://fal.ai/models/fal-ai/flashvsr/upscale/video
+- WaveSpeed AI: https://wavespeed.ai/models/wavespeed-ai/flashvsr
+- Segmind: https://www.segmind.com/models/flashvsr
 - Genbo AI: https://genbo.ai/models/toVideo/Flash-VSR
-- JAI Portal: https://www.jaiportal.com/model/flashvsr  
-- FlashVSR Online Service (third-party): https://flashvsr.org  
+- JAI Portal: https://www.jaiportal.com/model/flashvsr
+- FlashVSR Online Service (third-party): https://flashvsr.org
 - GigapixelAI Video Upscaler (FlashVSR option): https://gigapixelai.com/ai-video-upscaler
+
 ---
 
 ### 📢 Important Quality Note (ComfyUI & other third-party implementations)
@@ -60,11 +63,12 @@ Community discussion: https://github.com/kijai/ComfyUI-WanVideoWrapper/issues/14
 
 Below is a comparison example provided by a community member:
 
-| Fig.1 – LR Input Video | Fig.2 – 3rd-party (no LCSA) | Fig.3 – Official FlashVSR |
-|------------------|-----------------------------------------------|--------------------------------------|
+| Fig.1 – LR Input Video                                                                                                     | Fig.2 – 3rd-party (no LCSA)                                                                                                | Fig.3 – Official FlashVSR                                                                                                  |
+| -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | <video src="https://github.com/user-attachments/assets/ea12a191-48d5-47c0-a8e5-e19ad13581a9" controls width="260"></video> | <video src="https://github.com/user-attachments/assets/c8e53bd5-7eca-420d-9cc6-2b9c06831047" controls width="260"></video> | <video src="https://github.com/user-attachments/assets/a4d80618-d13d-4346-8e37-38d2fabf9827" controls width="260"></video> |
 
 ✅ The **official FlashVSR pipeline (this repository)**:
+
 - **Better preserves fine structures and details**
 - **Effectively avoids texture aliasing and visual artifacts**
 
@@ -74,7 +78,7 @@ Thanks again to the community for actively testing and helping improve FlashVSR 
 
 ### 📋 TODO
 
-- ✅ Release inference code and model weights  
+- ✅ Release inference code and model weights
 - ⬜ Release dataset (VSR-120K)
 
 ---
@@ -91,11 +95,12 @@ Follow these steps to set up and run **FlashVSR** on your local machine:
 ```bash
 git clone https://github.com/OpenImagingLab/FlashVSR
 cd FlashVSR
-````
+```
 
 #### 2️⃣ Set Up the Python Environment
 
 **Requirements:**
+
 - Python 3.9 - 3.11 (Python 3.12+ not supported due to torch compatibility)
 - [UV](https://docs.astral.sh/uv/) package manager
 
@@ -113,6 +118,7 @@ uv sync
 ```
 
 > **Note:** The project uses `pyproject.toml` for dependency management. UV will automatically:
+>
 > - Create a virtual environment in `.venv/`
 > - Install Python 3.11 (pinned via `.python-version`)
 > - Install torch 2.2.2 and all other dependencies
@@ -124,9 +130,8 @@ FlashVSR relies on the **Block-Sparse Attention** backend to enable flexible and
 
 > **⚠️ Note:**
 >
-> * The Block-Sparse Attention build process can be memory-intensive, especially when compiling in parallel with multiple `ninja` jobs. It is recommended to keep sufficient memory available during compilation to avoid OOM errors. Once the build is complete, runtime memory usage is stable and not an issue.
-> * Based on our testing, the Block-Sparse Attention backend works correctly on **NVIDIA A100 and A800** (Ampere) with **ideal acceleration performance**, and it also runs correctly on **H200** (Hopper) but the acceleration is limited due to hardware scheduling differences and sparse kernel behavior. **Compatibility and performance on other GPUs (e.g., RTX 40/50 series or H800) are currently unknown**. For more details, please refer to the official documentation: https://github.com/mit-han-lab/Block-Sparse-Attention
-
+> - The Block-Sparse Attention build process can be memory-intensive, especially when compiling in parallel with multiple `ninja` jobs. It is recommended to keep sufficient memory available during compilation to avoid OOM errors. Once the build is complete, runtime memory usage is stable and not an issue.
+> - Based on our testing, the Block-Sparse Attention backend works correctly on **NVIDIA A100 and A800** (Ampere) with **ideal acceleration performance**, and it also runs correctly on **H200** (Hopper) but the acceleration is limited due to hardware scheduling differences and sparse kernel behavior. **Compatibility and performance on other GPUs (e.g., RTX 40/50 series or H800) are currently unknown**. For more details, please refer to the official documentation: https://github.com/mit-han-lab/Block-Sparse-Attention
 
 ```bash
 # ✅ Recommended: clone and install in a separate clean folder (outside the FlashVSR repo)
@@ -137,29 +142,37 @@ pip install ninja
 python setup.py install
 ```
 
-#### 4️⃣ Download Model Weights from Hugging Face
+#### 4️⃣ Download Model Weights
 
-FlashVSR provides both **v1** and **v1.1** model weights on Hugging Face (via **Git LFS**).  
-Please install Git LFS first:
+FlashVSR provides both **v1** and **v1.1** model weights on Hugging Face.  
+Model weights are **automatically downloaded** when you first run inference, or you can download them explicitly:
+
+**Option 1: Automatic Download (Recommended)**
 
 ```bash
-# From the repo root
-cd examples/WanVSR
-
-# Install Git LFS (once per machine)
-git lfs install
-
-# Clone v1 (original) or v1.1 (recommended)
-git lfs clone https://huggingface.co/JunhaoZhuang/FlashVSR          # v1
-# or
-git lfs clone https://huggingface.co/JunhaoZhuang/FlashVSR-v1.1      # v1.1
+# Models will be auto-downloaded on first use
+uv run flashvsr input.mp4
 ```
 
-After cloning, you should have one of the following folders:
+**Option 2: Explicit Download**
+
+```bash
+# Download v1.1 model (recommended)
+uv run flashvsr setup
+
+# Download v1 model
+uv run flashvsr setup --version v1
+
+# Download models for specific pipeline
+uv run flashvsr setup --pipeline full
+uv run flashvsr setup --pipeline tiny
+```
+
+Models are downloaded to:
 
 ```
-./examples/WanVSR/FlashVSR/          # v1
-./examples/WanVSR/FlashVSR-v1.1/     # v1.1
+./models/FlashVSR/          # v1
+./models/FlashVSR-v1.1/     # v1.1
 │
 ├── LQ_proj_in.ckpt
 ├── TCDecoder.ckpt
@@ -168,7 +181,7 @@ After cloning, you should have one of the following folders:
 └── README.md
 ```
 
-> Inference scripts automatically load weights from the corresponding folder.
+> **Note:** The automatic download uses `huggingface_hub` which is faster than Git LFS and supports resume on interrupted downloads. Models are cached locally after the first download. The CLI also checks the old location (`examples/WanVSR/`) for backward compatibility.
 
 ---
 
@@ -199,7 +212,14 @@ uv run python infer_flashvsr_v1.1_tiny_long_video.py
 
 ```bash
 # From the repo root
+# Basic usage (models auto-download if missing)
+uv run flashvsr input.mp4
+
+# See all options
 uv run flashvsr --help
+
+# Download models explicitly (optional)
+uv run flashvsr setup
 ```
 
 ---
@@ -208,10 +228,10 @@ uv run flashvsr --help
 
 The overview of **FlashVSR**. This framework features:
 
-* **Three-Stage Distillation Pipeline** for streaming VSR training.
-* **Locality-Constrained Sparse Attention** to cut redundant computation and bridge the train–test resolution gap.
-* **Tiny Conditional Decoder** for efficient, high-quality reconstruction.
-* **VSR-120K Dataset** consisting of **120k videos** and **180k images**, supports joint training on both images and videos.
+- **Three-Stage Distillation Pipeline** for streaming VSR training.
+- **Locality-Constrained Sparse Attention** to cut redundant computation and bridge the train–test resolution gap.
+- **Tiny Conditional Decoder** for efficient, high-quality reconstruction.
+- **VSR-120K Dataset** consisting of **120k videos** and **180k images**, supports joint training on both images and videos.
 
 <img src="./examples/WanVSR/assets/flowchart.jpg" width="1000" />
 
@@ -227,15 +247,15 @@ We welcome feedback and issues. Thank you for trying **FlashVSR**!
 
 We gratefully acknowledge the following open-source projects:
 
-* **DiffSynth Studio** — [https://github.com/modelscope/DiffSynth-Studio](https://github.com/modelscope/DiffSynth-Studio)
-* **Block-Sparse-Attention** — [https://github.com/mit-han-lab/Block-Sparse-Attention](https://github.com/mit-han-lab/Block-Sparse-Attention)
-* **taehv** — [https://github.com/madebyollin/taehv](https://github.com/madebyollin/taehv)
+- **DiffSynth Studio** — [https://github.com/modelscope/DiffSynth-Studio](https://github.com/modelscope/DiffSynth-Studio)
+- **Block-Sparse-Attention** — [https://github.com/mit-han-lab/Block-Sparse-Attention](https://github.com/mit-han-lab/Block-Sparse-Attention)
+- **taehv** — [https://github.com/madebyollin/taehv](https://github.com/madebyollin/taehv)
 
 ---
 
 ### 📞 Contact
 
-* **Junhao Zhuang**
+- **Junhao Zhuang**
   Email: [zhuangjh23@mails.tsinghua.edu.cn](mailto:zhuangjh23@mails.tsinghua.edu.cn)
 
 ---
@@ -244,12 +264,12 @@ We gratefully acknowledge the following open-source projects:
 
 ```bibtex
 @misc{zhuang2025flashvsrrealtimediffusionbasedstreaming,
-      title={FlashVSR: Towards Real-Time Diffusion-Based Streaming Video Super-Resolution}, 
+      title={FlashVSR: Towards Real-Time Diffusion-Based Streaming Video Super-Resolution},
       author={Junhao Zhuang and Shi Guo and Xin Cai and Xiaohui Li and Yihao Liu and Chun Yuan and Tianfan Xue},
       year={2025},
       eprint={2510.12747},
       archivePrefix={arXiv},
       primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2510.12747}, 
+      url={https://arxiv.org/abs/2510.12747},
 }
 ```
