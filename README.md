@@ -187,7 +187,39 @@ Models are downloaded to:
 
 #### 5️⃣ Run Inference
 
-**Using the example scripts:**
+**Using the CLI (Recommended):**
+
+The CLI is the primary interface for running FlashVSR inference. It automatically handles model downloads and provides a consistent interface.
+
+```bash
+# From the repo root
+# Basic usage (models auto-download if missing)
+uv run flashvsr input.mp4
+
+# Use Tiny pipeline with v1.1 model
+uv run flashvsr input.mp4 --pipeline tiny --version v1.1
+
+# Custom output path and scale
+uv run flashvsr input.mp4 -o output.mp4 --scale 4.0
+
+# Process image directory
+uv run flashvsr ./images/ -o output.mp4
+
+# Customize inference parameters
+uv run flashvsr input.mp4 --sparse-ratio 1.5 --local-range 9 --tiled
+
+# See all options
+uv run flashvsr --help
+
+# Download models explicitly (optional)
+uv run flashvsr setup
+```
+
+> **Note:** By default, output videos are saved to the `results/` directory in the project root. Use the `-o` or `--output` option to specify a custom output path.
+
+**Using the example scripts (for reference):**
+
+> **Note:** The example scripts in `examples/WanVSR/` are provided for reference and educational purposes. They demonstrate how to use the FlashVSR pipelines programmatically. For production use, we recommend using the CLI interface above.
 
 ```bash
 # From the repo root
@@ -208,19 +240,7 @@ uv run python infer_flashvsr_v1.1_tiny.py
 uv run python infer_flashvsr_v1.1_tiny_long_video.py
 ```
 
-**Using the CLI:**
-
-```bash
-# From the repo root
-# Basic usage (models auto-download if missing)
-uv run flashvsr input.mp4
-
-# See all options
-uv run flashvsr --help
-
-# Download models explicitly (optional)
-uv run flashvsr setup
-```
+> **Note:** Example scripts expect model weights in `examples/WanVSR/FlashVSR/` or `examples/WanVSR/FlashVSR-v1.1/` directories. You can either download models there manually, or create symlinks from the `models/` directory.
 
 ---
 

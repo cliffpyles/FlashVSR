@@ -16,7 +16,6 @@ from tqdm import tqdm
 import torch
 from einops import rearrange
 
-# Add examples/WanVSR to path for imports
 # Get the directory where this script is located
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -665,10 +664,9 @@ def main():
         if input_name.startswith('.'):
             input_name = "output"
         
-        # Try to use examples/WanVSR/results if it exists, otherwise use ./results
-        output_dir = os.path.join(script_dir, "examples", "WanVSR", "results")
-        if not os.path.exists(output_dir):
-            output_dir = os.path.join(script_dir, "results")
+        # Use results directory in project root
+        project_root = os.path.dirname(script_dir)  # Go up from cli/ to project root
+        output_dir = os.path.join(project_root, "results")
         if not os.path.exists(output_dir):
             output_dir = "./results"
         os.makedirs(output_dir, exist_ok=True)

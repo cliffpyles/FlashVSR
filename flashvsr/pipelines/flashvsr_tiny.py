@@ -1,6 +1,7 @@
 import types
 import os
 import time
+from pathlib import Path
 from typing import Optional, Tuple, Literal
 
 import torch
@@ -235,7 +236,8 @@ class FlashVSRTinyPipeline(BasePipeline):
         使用固定 prompt 生成文本 context，并在 WanModel 中初始化所有 CrossAttention 的 KV 缓存。
         必须在 __call__ 前显式调用一次。
         """
-        prompt_path = "../../examples/WanVSR/prompt_tensor/posi_prompt.pth"
+        # Get path to posi_prompt.pth in package assets
+        prompt_path = Path(__file__).parent.parent / "assets" / "posi_prompt.pth"
 
         if self.dit is None:
             raise RuntimeError("请先通过 fetch_models / from_model_manager 初始化 self.dit")
@@ -243,7 +245,7 @@ class FlashVSRTinyPipeline(BasePipeline):
         if context_tensor is None:
             if prompt_path is None:
                 raise ValueError("init_cross_kv: 需要提供 prompt_path 或 context_tensor 其一")
-            ctx = torch.load(prompt_path, map_location=self.device)
+            ctx = torch.load(str(prompt_path), map_location=self.device)
         else:
             ctx = context_tensor
 

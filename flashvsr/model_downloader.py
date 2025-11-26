@@ -108,7 +108,7 @@ def download_model(
     Args:
         version: Model version ("v1" or "v1.1")
         pipeline_type: Pipeline type to determine which files to check ("base", "full", "tiny", "tiny-long")
-        base_dir: Base directory for model storage (defaults to examples/WanVSR)
+        base_dir: Base directory for model storage (defaults to models/ in project root)
         resume_download: Whether to resume interrupted downloads
         quiet: If True, suppress progress output
     
@@ -252,7 +252,7 @@ if __name__ == "__main__":
         "--base-dir",
         type=str,
         default=None,
-        help="Base directory for model storage (default: examples/WanVSR)"
+        help="Base directory for model storage (default: models/ in project root)"
     )
     parser.add_argument(
         "--quiet",
