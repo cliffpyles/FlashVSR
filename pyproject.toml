@@ -50,6 +50,9 @@ dev = [
     "pytest-cov>=4.1.0",
     "pytest-mock>=3.12.0",
 ]
+gpu-monitoring = [
+    "nvidia-ml-py",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -65,6 +68,15 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
+]
+
+[tool.uv]
+# Exclude deprecated pynvml package completely
+# pynvml is deprecated and should be replaced with nvidia-ml-py
+# nvidia-ml-py is available as an optional dependency via gpu-monitoring extra
+# This prevents pynvml from being installed by using an impossible marker
+override-dependencies = [
+    "pynvml; python_version < '0'"
 ]
 
 [build-system]

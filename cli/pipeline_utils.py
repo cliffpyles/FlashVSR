@@ -86,7 +86,10 @@ def init_pipeline(pipeline_type: str, model_version: str, model_dir: str = None,
             )
     
     print(f"Using model directory: {model_dir}")
-    print(f"GPU: {torch.cuda.current_device()} - {torch.cuda.get_device_name(torch.cuda.current_device())}")
+    if torch.cuda.is_available():
+        print(f"GPU: {torch.cuda.current_device()} - {torch.cuda.get_device_name(torch.cuda.current_device())}")
+    else:
+        print("GPU: Not available (using CPU)")
     
     mm = ModelManager(torch_dtype=dtype, device="cpu")
     

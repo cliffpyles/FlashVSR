@@ -27,7 +27,13 @@ try:
 except ModuleNotFoundError:
     SAGE_ATTN_AVAILABLE = False
 
-from block_sparse_attn import block_sparse_attn_func
+try:
+    from block_sparse_attn import block_sparse_attn_func
+    BLOCK_SPARSE_ATTN_AVAILABLE = True
+except ModuleNotFoundError:
+    BLOCK_SPARSE_ATTN_AVAILABLE = False
+    block_sparse_attn_func = None
+
 from PIL import Image
 import numpy as np
 
@@ -173,34 +179,52 @@ def generate_causal_block_mask(batch_size, nheads, seqlen, local_num, window_siz
 # ----------------------------
 def flash_attention(q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, num_heads: int, compatibility_mode=False, attention_mask=None, return_KV=False):
     if attention_mask is not None:
-        seqlen = q.shape[1]
-        seqlen_kv = k.shape[1]
-        q = rearrange(q, "b s (n d) -> (b s) n d", n=num_heads)
-        k = rearrange(k, "b s (n d) -> (b s) n d", n=num_heads)
-        v = rearrange(v, "b s (n d) -> (b s) n d", n=num_heads)
-        cu_seqlens_q = torch.tensor([0, seqlen], device=q.device, dtype=torch.int32)
-        cu_seqlens_k = torch.tensor([0, seqlen_kv], device=q.device, dtype=torch.int32)
-        head_mask_type = torch.tensor([1]*num_heads, device=q.device, dtype=torch.int32)
-        streaming_info = None
-        base_blockmask = attention_mask
-        max_seqlen_q_ = seqlen
-        max_seqlen_k_ = seqlen_kv
-        p_dropout = 0.0
-        x = block_sparse_attn_func(
-            q, k, v,
-            cu_seqlens_q, cu_seqlens_k,
-            head_mask_type,
-            streaming_info,
-            base_blockmask,
-            max_seqlen_q_, max_seqlen_k_,
-            p_dropout,
-            deterministic=False,
-            softmax_scale=None,
-            is_causal=False,
-            exact_streaming=False,
-            return_attn_probs=False,
-        ).unsqueeze(0)
-        x = rearrange(x, "b s n d -> b s (n d)", n=num_heads)
+        if not BLOCK_SPARSE_ATTN_AVAILABLE:
+            # Fall back to compatibility mode when block_sparse_attn is not available
+            q = rearrange(q, "b s (n d) -> b n s d", n=num_heads)
+            k = rearrange(k, "b s (n d) -> b n s d", n=num_heads)
+            v = rearrange(v, "b s (n d) -> b n s d", n=num_heads)
+            # Apply attention mask manually
+            # attention_mask shape: (batch, num_heads, seqlen_q, seqlen_kv)
+            # Convert to proper format for scaled_dot_product_attention
+            if attention_mask.dim() == 4:
+                # Expand mask to match q, k, v dimensions
+                attn_mask = attention_mask.squeeze(0)  # Remove batch dim if needed
+                attn_mask = attn_mask.masked_fill(attn_mask == 0, float('-inf'))
+                attn_mask = attn_mask.masked_fill(attn_mask == 1, 0.0)
+            else:
+                attn_mask = attention_mask
+            x = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask)
+            x = rearrange(x, "b n s d -> b s (n d)", n=num_heads)
+        else:
+            seqlen = q.shape[1]
+            seqlen_kv = k.shape[1]
+            q = rearrange(q, "b s (n d) -> (b s) n d", n=num_heads)
+            k = rearrange(k, "b s (n d) -> (b s) n d", n=num_heads)
+            v = rearrange(v, "b s (n d) -> (b s) n d", n=num_heads)
+            cu_seqlens_q = torch.tensor([0, seqlen], device=q.device, dtype=torch.int32)
+            cu_seqlens_k = torch.tensor([0, seqlen_kv], device=q.device, dtype=torch.int32)
+            head_mask_type = torch.tensor([1]*num_heads, device=q.device, dtype=torch.int32)
+            streaming_info = None
+            base_blockmask = attention_mask
+            max_seqlen_q_ = seqlen
+            max_seqlen_k_ = seqlen_kv
+            p_dropout = 0.0
+            x = block_sparse_attn_func(
+                q, k, v,
+                cu_seqlens_q, cu_seqlens_k,
+                head_mask_type,
+                streaming_info,
+                base_blockmask,
+                max_seqlen_q_, max_seqlen_k_,
+                p_dropout,
+                deterministic=False,
+                softmax_scale=None,
+                is_causal=False,
+                exact_streaming=False,
+                return_attn_probs=False,
+            ).unsqueeze(0)
+            x = rearrange(x, "b s n d -> b s (n d)", n=num_heads)
     elif compatibility_mode:
         q = rearrange(q, "b s (n d) -> b n s d", n=num_heads)
         k = rearrange(k, "b s (n d) -> b n s d", n=num_heads)

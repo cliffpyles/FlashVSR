@@ -18,14 +18,49 @@ from einops import rearrange
 def tensor2video(frames: torch.Tensor):
     """Convert tensor to video frames."""
     frames = rearrange(frames, "C T H W -> T H W C")
-    frames = ((frames.float() + 1) * 127.5).clip(0, 255).cpu().numpy().astype(np.uint8)
-    frames = [Image.fromarray(frame) for frame in frames]
+    frames = ((frames.float() + 1) * 127.5).clip(0, 255)
+    frames = frames.detach().cpu()
+    try:
+        frames_np = frames.numpy().astype(np.uint8)
+    except RuntimeError:
+        # Fallback for NumPy compatibility issues (e.g., NumPy 2.x with PyTorch compiled for 1.x)
+        # Convert via list intermediate
+        frames_np = np.array(frames.tolist(), dtype=np.uint8)
+    frames = [Image.fromarray(frame) for frame in frames_np]
     return frames
 
 
 def natural_key(name: str):
-    """Natural sort key for filenames."""
-    return [int(t) if t.isdigit() else t.lower() for t in re.split(r'([0-9]+)', os.path.basename(name))]
+    """Natural sort key for filenames.
+    
+    Splits filename into alternating non-digit and digit parts.
+    Non-digit parts are compared as strings, digit parts as integers.
+    This ensures natural sorting: "test.jpg" < "test2.jpg" < "test10.jpg"
+    
+    Uses tuples (type, value) where type 0=string, 1=int to ensure
+    strings compare before integers when prefixes match.
+    """
+    basename = os.path.basename(name).lower()
+    # Split filename into name and extension
+    name_part, ext = os.path.splitext(basename)
+    
+    # Split name part into digits and non-digits
+    name_parts = re.split(r'([0-9]+)', name_part)
+    
+    # Convert to comparable format: (type, value) where type 0=string, 1=int
+    key = []
+    for t in name_parts:
+        if t:  # Skip empty strings
+            if t.isdigit():
+                key.append((1, int(t)))  # Type 1 for integers
+            else:
+                key.append((0, t))  # Type 0 for strings
+    
+    # Add extension as a string part
+    if ext:
+        key.append((0, ext))
+    
+    return key
 
 
 def list_images_natural(folder: str):
@@ -48,7 +83,12 @@ def is_video(path):
 
 def pil_to_tensor_neg1_1(img: Image.Image, dtype=torch.bfloat16, device='cuda'):
     """Convert PIL image to tensor in [-1, 1] range."""
-    t = torch.from_numpy(np.asarray(img, np.uint8)).to(device=device, dtype=torch.float32)  # HWC
+    img_array = np.asarray(img, dtype=np.uint8)
+    try:
+        t = torch.from_numpy(img_array).to(device=device, dtype=torch.float32)  # HWC
+    except RuntimeError:
+        # Fallback for NumPy compatibility issues
+        t = torch.tensor(img_array, device=device, dtype=torch.float32)  # HWC
     t = t.permute(2, 0, 1) / 255.0 * 2.0 - 1.0  # CHW in [-1,1]
     return t.to(dtype)
 
