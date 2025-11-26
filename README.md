@@ -1,8 +1,10 @@
 # ⚡ FlashVSR
 
+> **📌 Note:** This is a fork of [FlashVSR](https://github.com/OpenImagingLab/FlashVSR). The original repository is maintained by the OpenImagingLab team. This fork includes quality of life improvements for using the models and introduces test coverage with pytest.
+
 **Towards Real-Time Diffusion-Based Streaming Video Super-Resolution**
 
-**Authors:** Junhao Zhuang, Shi Guo, Xin Cai, Xiaohui Li, Yihao Liu, Chun Yuan, Tianfan Xue
+**Model Authors:** Junhao Zhuang, Shi Guo, Xin Cai, Xiaohui Li, Yihao Liu, Chun Yuan, Tianfan Xue
 
 <a href='http://zhuang2002.github.io/FlashVSR'><img src='https://img.shields.io/badge/Project-Page-Green'></a> &nbsp;
 <a href="https://huggingface.co/JunhaoZhuang/FlashVSR"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model%20(v1)-blue"></a> &nbsp;
@@ -93,7 +95,7 @@ Follow these steps to set up and run **FlashVSR** on your local machine:
 #### 1️⃣ Clone the Repository
 
 ```bash
-git clone https://github.com/OpenImagingLab/FlashVSR
+git clone https://github.com/cliffpyles/FlashVSR
 cd FlashVSR
 ```
 
@@ -241,6 +243,35 @@ uv run python infer_flashvsr_v1.1_tiny_long_video.py
 ```
 
 > **Note:** Example scripts expect model weights in `examples/WanVSR/FlashVSR/` or `examples/WanVSR/FlashVSR-v1.1/` directories. You can either download models there manually, or create symlinks from the `models/` directory.
+
+---
+
+### 🧪 Testing
+
+FlashVSR includes pytest for testing. To run tests, first install the development dependencies:
+
+```bash
+# Install dev dependencies (includes pytest, pytest-cov, pytest-mock)
+uv sync --extra dev
+```
+
+Then run the test suite:
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run only unit tests
+uv run pytest -m unit
+
+# Run tests with coverage report
+uv run pytest --cov=flashvsr
+
+# Run tests in verbose mode
+uv run pytest -v
+```
+
+Test files are located in the `tests/` directory and follow the naming convention `test_*.py` or `*_test.py`.
 
 ---
 
