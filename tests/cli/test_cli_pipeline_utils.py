@@ -1,22 +1,22 @@
-"""Tests for cli/pipeline_utils.py"""
+"""Tests for flashvsr/pipeline_utils.py"""
 
 import os
 import tempfile
 import pytest
 import torch
 from unittest.mock import Mock, patch, MagicMock
-from cli.pipeline_utils import init_pipeline
+from flashvsr.pipeline_utils import init_pipeline
 
 
 @pytest.mark.unit
 class TestInitPipeline:
     """Tests for init_pipeline function."""
     
-    @patch('cli.pipeline_utils.download_models_for_pipeline')
-    @patch('cli.pipeline_utils.ModelManager')
-    @patch('cli.pipeline_utils.FlashVSRFullPipeline')
-    @patch('cli.pipeline_utils.torch.load')
-    @patch('cli.pipeline_utils.Causal_LQ4x_Proj')
+    @patch('flashvsr.pipeline_utils.download_models_for_pipeline')
+    @patch('flashvsr.pipeline_utils.ModelManager')
+    @patch('flashvsr.pipeline_utils.FlashVSRFullPipeline')
+    @patch('flashvsr.pipeline_utils.torch.load')
+    @patch('flashvsr.pipeline_utils.Causal_LQ4x_Proj')
     def test_init_pipeline_full_v1_1(self, mock_lq_proj, mock_torch_load, mock_pipeline_class, mock_model_manager, mock_download):
         """Test init_pipeline for full pipeline v1.1."""
         mock_mm = MagicMock()
@@ -60,12 +60,12 @@ class TestInitPipeline:
             mock_model_manager.assert_called_once()
             mock_pipeline_class.from_model_manager.assert_called_once()
     
-    @patch('cli.pipeline_utils.download_models_for_pipeline')
-    @patch('cli.pipeline_utils.ModelManager')
-    @patch('cli.pipeline_utils.FlashVSRTinyPipeline')
-    @patch('cli.pipeline_utils.torch.load')
-    @patch('cli.pipeline_utils.Causal_LQ4x_Proj')
-    @patch('cli.pipeline_utils.build_tcdecoder')
+    @patch('flashvsr.pipeline_utils.download_models_for_pipeline')
+    @patch('flashvsr.pipeline_utils.ModelManager')
+    @patch('flashvsr.pipeline_utils.FlashVSRTinyPipeline')
+    @patch('flashvsr.pipeline_utils.torch.load')
+    @patch('flashvsr.pipeline_utils.Causal_LQ4x_Proj')
+    @patch('flashvsr.pipeline_utils.build_tcdecoder')
     def test_init_pipeline_tiny(self, mock_tcdecoder, mock_lq_proj, mock_torch_load, mock_pipeline_class, mock_model_manager, mock_download):
         """Test init_pipeline for tiny pipeline."""
         mock_mm = MagicMock()
@@ -104,8 +104,8 @@ class TestInitPipeline:
             
             assert result == mock_pipe
     
-    @patch('cli.pipeline_utils.ModelManager')
-    @patch('cli.pipeline_utils.os.path.exists')
+    @patch('flashvsr.pipeline_utils.ModelManager')
+    @patch('flashvsr.pipeline_utils.os.path.exists')
     def test_init_pipeline_invalid_type(self, mock_exists, mock_model_manager):
         """Test init_pipeline raises error for invalid pipeline type."""
         # Mock that model directory exists so we get to the pipeline type check
@@ -121,8 +121,8 @@ class TestInitPipeline:
                 auto_download=False
             )
     
-    @patch('cli.pipeline_utils.download_models_for_pipeline')
-    @patch('cli.pipeline_utils.os.path.exists')
+    @patch('flashvsr.pipeline_utils.download_models_for_pipeline')
+    @patch('flashvsr.pipeline_utils.os.path.exists')
     def test_init_pipeline_auto_download(self, mock_exists, mock_download):
         """Test init_pipeline triggers auto-download when model not found."""
         mock_exists.return_value = False
@@ -139,7 +139,7 @@ class TestInitPipeline:
         # Verify download was attempted
         # Note: This test may need adjustment based on actual behavior
     
-    @patch('cli.pipeline_utils.os.path.exists')
+    @patch('flashvsr.pipeline_utils.os.path.exists')
     def test_init_pipeline_no_auto_download(self, mock_exists):
         """Test init_pipeline raises error when model not found and auto_download is False."""
         mock_exists.return_value = False
@@ -151,4 +151,3 @@ class TestInitPipeline:
                 model_dir="/nonexistent",
                 auto_download=False
             )
-

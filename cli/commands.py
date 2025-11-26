@@ -11,8 +11,8 @@ import torch
 import traceback
 from flashvsr.registry import register_wan_models
 from flashvsr.model_downloader import download_model
-from .pipeline_utils import init_pipeline
-from .utils import (
+from flashvsr.pipeline_utils import init_pipeline
+from flashvsr.utils import (
     prepare_input_tensor,
     tensor2video,
     save_video,
@@ -183,4 +183,3 @@ def inference_command(args):
         print(f"{'='*60}\n")
         traceback.print_exc()
         sys.exit(1)
-

@@ -1,4 +1,4 @@
-"""Tests for cli/utils.py"""
+"""Tests for flashvsr/utils.py"""
 
 import os
 import tempfile
@@ -6,7 +6,7 @@ import pytest
 import torch
 import numpy as np
 from PIL import Image
-from cli.utils import (
+from flashvsr.utils import (
     tensor2video,
     natural_key,
     list_images_natural,
@@ -226,4 +226,3 @@ class TestGetDtype:
         """Test get_dtype defaults to bfloat16 for invalid inputs."""
         assert get_dtype("invalid") == torch.bfloat16
         assert get_dtype("") == torch.bfloat16
-
