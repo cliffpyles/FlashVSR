@@ -95,19 +95,28 @@ cd FlashVSR
 
 #### 2️⃣ Set Up the Python Environment
 
-Create and activate the environment (**Python 3.11.13**):
+**Requirements:**
+- Python 3.9 - 3.11 (Python 3.12+ not supported due to torch compatibility)
+- [UV](https://docs.astral.sh/uv/) package manager
+
+**Install UV** (if not already installed):
 
 ```bash
-conda create -n flashvsr python=3.11.13
-conda activate flashvsr
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Install project dependencies:
+**Install project dependencies:**
 
 ```bash
-pip install -e .
-pip install -r requirements.txt
+# UV will automatically create a virtual environment and install all dependencies
+uv sync
 ```
+
+> **Note:** The project uses `pyproject.toml` for dependency management. UV will automatically:
+> - Create a virtual environment in `.venv/`
+> - Install Python 3.11 (pinned via `.python-version`)
+> - Install torch 2.2.2 and all other dependencies
+> - Lock dependencies in `uv.lock`
 
 #### 3️⃣ Install Block-Sparse Attention (Required)
 
@@ -165,23 +174,32 @@ After cloning, you should have one of the following folders:
 
 #### 5️⃣ Run Inference
 
+**Using the example scripts:**
+
 ```bash
 # From the repo root
 cd examples/WanVSR
 
 # v1 (original)
-python infer_flashvsr_full.py
+uv run python infer_flashvsr_full.py
 # or
-python infer_flashvsr_tiny.py
+uv run python infer_flashvsr_tiny.py
 # or
-python infer_flashvsr_tiny_long_video.py
+uv run python infer_flashvsr_tiny_long_video.py
 
 # v1.1 (recommended)
-python infer_flashvsr_v1.1_full.py
+uv run python infer_flashvsr_v1.1_full.py
 # or
-python infer_flashvsr_v1.1_tiny.py
+uv run python infer_flashvsr_v1.1_tiny.py
 # or
-python infer_flashvsr_v1.1_tiny_long_video.py
+uv run python infer_flashvsr_v1.1_tiny_long_video.py
+```
+
+**Using the CLI:**
+
+```bash
+# From the repo root
+uv run flashvsr --help
 ```
 
 ---
