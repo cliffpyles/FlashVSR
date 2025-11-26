@@ -2,9 +2,9 @@
 
 > **📌 Note:** This is a fork of [FlashVSR](https://github.com/OpenImagingLab/FlashVSR). The original repository is maintained by the OpenImagingLab team.
 
-**Towards Real-Time Diffusion-Based Streaming Video Super-Resolution**
-
 **Original Authors:** Junhao Zhuang, Shi Guo, Xin Cai, Xiaohui Li, Yihao Liu, Chun Yuan, Tianfan Xue
+
+**Towards Real-Time Diffusion-Based Streaming Video Super-Resolution**
 
 <img src="./examples/WanVSR/assets/teaser.png" />
 
