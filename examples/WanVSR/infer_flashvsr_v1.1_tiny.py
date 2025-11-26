@@ -7,11 +7,14 @@ from PIL import Image
 import imageio
 from tqdm import tqdm
 import torch
-from einops import rearrange
+from einops import rearrange # Keep this as it's used in tensor2video
+from diffsynth import ModelManager, save_video, download_models
+from flashvsr.pipelines.flashvsr_tiny import FlashVSRTinyPipeline
+from flashvsr.models.flashvsr_utils import Causal_LQ4x_Proj
+from flashvsr.models.flashvsr_tcdecoder import build_tcdecoder
+from flashvsr.registry import register_wan_models
 
-from diffsynth import ModelManager, FlashVSRTinyPipeline
-from utils.utils import Causal_LQ4x_Proj
-from utils.TCDecoder import build_tcdecoder
+register_wan_models()
 
 def tensor2video(frames):
     frames = rearrange(frames, "C T H W -> T H W C")

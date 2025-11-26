@@ -9,8 +9,12 @@ from tqdm import tqdm
 import torch
 from einops import rearrange
 
-from diffsynth import ModelManager, FlashVSRFullPipeline
-from utils.utils import Buffer_LQ4x_Proj
+from diffsynth import ModelManager, save_video, download_models
+from flashvsr.pipelines.flashvsr_full import FlashVSRFullPipeline
+from flashvsr.models.flashvsr_utils import Buffer_LQ4x_Proj
+from flashvsr.registry import register_wan_models
+
+register_wan_models()
 
 def tensor2video(frames: torch.Tensor):
     frames = rearrange(frames, "C T H W -> T H W C")

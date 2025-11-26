@@ -1,0 +1,49 @@
+[project]
+name = "flashvsr"
+version = "1.0.0"
+description = "FlashVSR: Fast Video Super-Resolution"
+readme = "README.md"
+requires-python = ">=3.9,<3.12"
+authors = [
+    { name = "DiffSynth Team", email = "cliffpyles@gmail.com" }
+]
+license = { text = "Apache-2.0" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "torch==2.2.2",
+    "torchvision==0.17.2",
+    "torchaudio==2.2.2",
+    "torchmetrics>=1.8.2",
+    "torchsde>=0.2.6",
+    "accelerate>=1.10.1",
+    "einops>=0.8.1",
+    "huggingface-hub>=0.36.0",
+    "matplotlib>=3.9.4",
+    "numpy>=2.0.2",
+    "opencv-python-headless>=4.11.0.86",
+    "peft>=0.17.1",
+    "pillow>=11.3.0",
+    "safetensors>=0.7.0",
+    "sentencepiece>=0.2.1",
+    "transformers>=4.57.3",
+    "pytorch-lightning>=2.3.3",
+    "imageio>=2.37.2",
+    "imageio-ffmpeg>=0.6.0",
+    "protobuf>=6.33.1",
+    "ftfy>=6.3.1",
+    "pandas>=2.3.3",
+    "tqdm>=4.67.1",
+    "datasets>=4.4.1",
+    "diffsynth>=1.0.0",
+]
+
+[project.scripts]
+flashvsr = "cli.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
