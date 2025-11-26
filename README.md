@@ -1,6 +1,6 @@
 # ⚡ FlashVSR
 
-> **📌 Note:** This is a fork of [FlashVSR](https://github.com/OpenImagingLab/FlashVSR). The original repository is maintained by the OpenImagingLab team.
+> **📌 Note:** This is a fork of [FlashVSR](https://github.com/OpenImagingLab/FlashVSR). The original repository is maintained by the [OpenImagingLab](https://github.com/OpenImagingLab) team. That's probably what you are looking for.
 
 **Original Authors:** Junhao Zhuang, Shi Guo, Xin Cai, Xiaohui Li, Yihao Liu, Chun Yuan, Tianfan Xue
 
